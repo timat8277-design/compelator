@@ -13,15 +13,30 @@ jobs:
       - name: Клонирование репозитория
         uses: actions/checkout@v4
 
-      - name: Компиляция ExteraChimeraTweak.dylib под ARM64 iOS
+      - name: Поиск и компиляция ExteraChimeraTweak.dylib
         run: |
+          echo "=== Список всех файлов в репозитории ==="
+          find . -not -path '*/.*'
+
+          # Автоматический поиск файла твика в любой папке
+          TWEAK_PATH=$(find . -name "ExteraChimeraTweak.m" | head -n 1)
+          
+          if [ -z "$TWEAK_PATH" ]; then
+            echo "[-] ОШИБКА: Файл ExteraChimeraTweak.m не найден в репозитории!"
+            echo "Пожалуйста, загрузите файл ExteraChimeraTweak.m через 'Add file' -> 'Upload files'"
+            exit 1
+          fi
+          
+          echo "[+] Найден файл твика: $TWEAK_PATH"
+          
           SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
           clang -dynamiclib -arch arm64 \
             -isysroot "$SDK_PATH" \
             -miphoneos-version-min=15.0 \
             -fobjc-arc \
+            -Wno-everything \
             -framework Foundation -framework UIKit -lobjc \
-            Sources/Tweak/ExteraChimeraTweak.m \
+            "$TWEAK_PATH" \
             -o ExteraChimeraTweak.dylib
           
           echo "=== УСПЕХ: ExteraChimeraTweak.dylib скомпилирован! ==="
