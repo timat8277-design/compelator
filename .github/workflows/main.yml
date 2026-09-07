@@ -13,12 +13,23 @@ jobs:
       - name: Клонирование репозитория
         uses: actions/checkout@v4
 
+      - name: Активация iOS SDK в Xcode
+        run: |
+          if [ -d "/Applications/Xcode_15.4.app" ]; then
+            sudo xcode-select -switch /Applications/Xcode_15.4.app/Contents/Developer
+          else
+            sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer
+          fi
+          echo "Xcode активирован: $(xcode-select -p)"
+
       - name: Компиляция ExteraChimeraTweak.dylib
         run: |
           TWEAK_PATH=$(find . -name "ExteraChimeraTweak.m" | head -n 1)
-          echo "[+] Найден файл твика: $TWEAK_PATH"
+          echo "[+] Файл твика: $TWEAK_PATH"
 
           SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
+          echo "[+] iOS SDK: $SDK_PATH"
+
           clang -dynamiclib -arch arm64 \
             -isysroot "$SDK_PATH" \
             -miphoneos-version-min=15.0 \
