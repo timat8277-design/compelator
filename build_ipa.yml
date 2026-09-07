@@ -1,0 +1,46 @@
+name: Build exteraGram iOS (.IPA)
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-ipa:
+    name: Компиляция .IPA в облаке macOS
+    runs-on: macos-14
+
+    steps:
+      - name: Клонирование репозитория
+        uses: actions/checkout@v4
+
+      - name: Установка XcodeGen
+        run: brew install xcodegen
+
+      - name: Генерация проекта Xcode (.xcodeproj)
+        run: xcodegen generate
+
+      - name: Сборка и архивация проекта
+        run: |
+          xcodebuild archive \
+            -project exteraGram-iOS.xcodeproj \
+            -scheme exteraGram \
+            -configuration Release \
+            -destination "generic/platform=iOS" \
+            -archivePath build/exteraGram.xcarchive \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Упаковка в .IPA (Payload)
+        run: |
+          mkdir -p Payload
+          cp -r build/exteraGram.xcarchive/Products/Applications/exteraGram.app Payload/
+          zip -r exteraGram-iOS.ipa Payload
+
+      - name: Загрузка готового .IPA в артефакты
+        uses: actions/upload-artifact@v4
+        with:
+          name: exteraGram-iOS-IPA
+          path: exteraGram-iOS.ipa
+          retention-days: 14

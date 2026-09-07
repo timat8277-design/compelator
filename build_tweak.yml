@@ -1,0 +1,62 @@
+name: Build ExteraChimera Tweak for iOS (ESign & Sideloadly)
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+
+    steps:
+      - name: Клонирование репозитория
+        uses: actions/checkout@v4
+
+      - name: Компиляция ExteraChimeraTweak.dylib под ARM64 iOS
+        run: |
+          SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
+          clang -dynamiclib -arch arm64 \
+            -isysroot "$SDK_PATH" \
+            -miphoneos-version-min=15.0 \
+            -fobjc-arc \
+            -framework Foundation -framework UIKit -lobjc \
+            Sources/Tweak/ExteraChimeraTweak.m \
+            -o ExteraChimeraTweak.dylib
+          
+          echo "=== УСПЕХ: ExteraChimeraTweak.dylib скомпилирован! ==="
+          file ExteraChimeraTweak.dylib
+          ls -la ExteraChimeraTweak.dylib
+
+      - name: Выгрузка готового ExteraChimeraTweak.dylib для ESign
+        uses: actions/upload-artifact@v4
+        with:
+          name: ExteraChimeraTweak-dylib-for-ESign
+          path: ExteraChimeraTweak.dylib
+          retention-days: 14
+
+      - name: Сборка готового IPA (если Teledark IPA найден в репозитории)
+        run: |
+          if [ -f "Teledark 12.9.2.ipa" ]; then
+            brew install optool || true
+            unzip -q "Teledark 12.9.2.ipa" -d build_tweak
+            APP_PATH="build_tweak/Payload/Telegram.app"
+            cp ExteraChimeraTweak.dylib "$APP_PATH/"
+            optool install -c load -p "@executable_path/ExteraChimeraTweak.dylib" -t "$APP_PATH/Telegram" || true
+            cp -r Sources/Assets/ChimeraNFT "$APP_PATH/" || true
+            cd build_tweak
+            zip -r -q ../exteraGram-12.9.2-working.ipa Payload
+            cd ..
+            echo "IPA_BUILT=true" >> $GITHUB_ENV
+          else
+            echo "Teledark IPA не загружен (не требуется, dylib готов для ESign)."
+            echo "IPA_BUILT=false" >> $GITHUB_ENV
+          fi
+
+      - name: Выгрузка готового IPA (если собран)
+        if: env.IPA_BUILT == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: exteraGram-12.9.2-working-IPA
+          path: exteraGram-12.9.2-working.ipa
+          retention-days: 14
