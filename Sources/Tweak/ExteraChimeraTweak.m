@@ -187,41 +187,41 @@
 
 - (void)setupHeaderCard {
     ChimeraStore *s = [ChimeraStore shared];
-    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.width, 160)];
+    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, 160)];
 
-    UIView *card = [[UIView alloc] initWithFrame:CGRectMake(16, 10, self.view.bounds.width - 32, 140)];
+    UIView *card = [[UIView alloc] initWithFrame:CGRectMake(16, 10, self.view.bounds.size.width - 32, 140)];
     card.backgroundColor = [UIColor colorWithRed:0.11 green:0.14 blue:0.20 alpha:0.95];
     card.layer.cornerRadius = 16;
     card.layer.borderWidth = 1.2;
     card.layer.borderColor = [UIColor colorWithRed:0.0 green:0.75 blue:1.0 alpha:0.6].CGColor;
     [header addSubview:card];
 
-    UILabel *badge = [[UILabel alloc] initWithFrame:CGRectMake(16, 12, card.bounds.width - 32, 18)];
+    UILabel *badge = [[UILabel alloc] initWithFrame:CGRectMake(16, 12, card.bounds.size.width - 32, 18)];
     badge.text = @"👑 CHIMERA NFT • ⭐ LOCAL PREMIUM";
     badge.font = [UIFont boldSystemFontOfSize:11];
     badge.textColor = [UIColor colorWithRed:0.2 green:0.8 blue:1.0 alpha:1.0];
     [card addSubview:badge];
 
-    UILabel *userLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, 32, card.bounds.width - 32, 28)];
+    UILabel *userLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, 32, card.bounds.size.width - 32, 28)];
     userLabel.text = [NSString stringWithFormat:@"@%@", [s currentUsername]];
     userLabel.font = [UIFont boldSystemFontOfSize:22];
     userLabel.textColor = [UIColor whiteColor];
     [card addSubview:userLabel];
 
-    UILabel *numLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, 62, card.bounds.width - 32, 18)];
+    UILabel *numLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, 62, card.bounds.size.width - 32, 18)];
     numLabel.text = [NSString stringWithFormat:@"📞 %@   •   🏆 Рейтинг: %ld pts", [s currentNumber], (long)s.ratingScore];
     numLabel.font = [UIFont systemFontOfSize:12];
     numLabel.textColor = [UIColor colorWithWhite:0.85 alpha:1.0];
     [card addSubview:numLabel];
 
     NSDictionary *worn = [s currentWornGift];
-    UILabel *wornLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, 84, card.bounds.width - 32, 18)];
+    UILabel *wornLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, 84, card.bounds.size.width - 32, 18)];
     wornLabel.text = [NSString stringWithFormat:@"🎁 Надет: %@ #%@  [Узор: %@]", worn[@"title"] ?: @"None", worn[@"number"] ?: @(1), worn[@"pattern"] ?: @"Звёзды"];
     wornLabel.font = [UIFont systemFontOfSize:11 weight:UIFontWeightMedium];
     wornLabel.textColor = [UIColor colorWithRed:1.0 green:0.8 blue:0.2 alpha:1.0];
     [card addSubview:wornLabel];
 
-    UILabel *balLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, 108, card.bounds.width - 32, 20)];
+    UILabel *balLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, 108, card.bounds.size.width - 32, 20)];
     balLabel.text = [NSString stringWithFormat:@"⭐️ %lld Stars   💎 %.1f GRAM   🔷 %.1f TON", s.starsBalance, s.gramBalance, s.tonBalance];
     balLabel.font = [UIFont boldSystemFontOfSize:12];
     balLabel.textColor = [UIColor colorWithRed:0.2 green:0.9 blue:0.5 alpha:1.0];
@@ -530,7 +530,7 @@ static void hook_viewWillAppear(UIViewController *self, SEL _cmd, BOOL animated)
         // Создаём красивую полноценную кнопку «Chimera NFT» в стиле Telegram iOS
         UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
         btn.tag = 77702;
-        btn.frame = CGRectMake(16, 72, self.view.bounds.width - 32, 58);
+        btn.frame = CGRectMake(16, 72, self.view.bounds.size.width - 32, 58);
         btn.backgroundColor = [UIColor colorWithRed:0.10 green:0.13 blue:0.19 alpha:0.96];
         btn.layer.cornerRadius = 14;
         btn.layer.borderWidth = 1.3;
@@ -547,21 +547,21 @@ static void hook_viewWillAppear(UIViewController *self, SEL _cmd, BOOL animated)
         [btn addSubview:iconLabel];
 
         // Заголовок
-        UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(48, 10, btn.bounds.width - 80, 20)];
+        UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(48, 10, btn.bounds.size.width - 80, 20)];
         titleLabel.text = @"Chimera NFT";
         titleLabel.font = [UIFont boldSystemFontOfSize:16];
         titleLabel.textColor = [UIColor whiteColor];
         [btn addSubview:titleLabel];
 
         // Подзаголовок: баланс и текущий подарок
-        UILabel *subLabel = [[UILabel alloc] initWithFrame:CGRectMake(48, 30, btn.bounds.width - 80, 18)];
+        UILabel *subLabel = [[UILabel alloc] initWithFrame:CGRectMake(48, 30, btn.bounds.size.width - 80, 18)];
         subLabel.text = [NSString stringWithFormat:@"⭐️ %lld Stars  •  💎 %.1f GRAM  •  @%@", s.starsBalance, s.gramBalance, [s currentUsername]];
         subLabel.font = [UIFont systemFontOfSize:12];
         subLabel.textColor = [UIColor colorWithRed:0.2 green:0.8 blue:1.0 alpha:1.0];
         [btn addSubview:subLabel];
 
         // Стрелка перехода
-        UILabel *arrow = [[UILabel alloc] initWithFrame:CGRectMake(btn.bounds.width - 26, 19, 20, 20)];
+        UILabel *arrow = [[UILabel alloc] initWithFrame:CGRectMake(btn.bounds.size.width - 26, 19, 20, 20)];
         arrow.text = @"›";
         arrow.font = [UIFont systemFontOfSize:24 weight:UIFontWeightRegular];
         arrow.textColor = [UIColor colorWithWhite:0.6 alpha:1.0];
