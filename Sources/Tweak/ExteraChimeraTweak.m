@@ -904,107 +904,261 @@ static void ensureTeledarkNavButton(UIViewController *vc) {
     }
 }
 
-#pragma mark - Внедрение карточки надетого NFT в профиль (PeerInfo)
+#pragma mark - Вкладка «Chimera NFT» и нативная сетка в официальном меню подарков Telegram
 
-static void injectPeerInfoWornGiftCard(UIViewController *vc) {
-    if (!vc.isViewLoaded || !vc.view) return;
+@interface UIViewController (ChimeraGiftGridActions)
+- (void)chimeraGiftSegmentChanged:(UISegmentedControl *)sender;
+- (void)chimeraCardTapped:(UITapGestureRecognizer *)tap;
+@end
 
-    UIView *existing = [vc.view viewWithTag:77705];
-    if (existing) {
-        [existing removeFromSuperview];
+@implementation UIViewController (ChimeraGiftGridActions)
+
+- (void)chimeraGiftSegmentChanged:(UISegmentedControl *)sender {
+    UIView *grid = [self.view viewWithTag:77711];
+    if (grid) {
+        grid.hidden = (sender.selectedSegmentIndex == 0);
+        if (!grid.hidden) {
+            [self.view bringSubviewToFront:grid];
+            [self.view bringSubviewToFront:sender];
+        }
     }
-
-    ChimeraStore *s = [ChimeraStore shared];
-    NSDictionary *worn = [s currentWornGift];
-
-    CGFloat screenW = vc.view.bounds.size.width;
-    if (screenW < 100) screenW = [UIScreen mainScreen].bounds.size.width;
-
-    UIView *card = [[UIView alloc] initWithFrame:CGRectMake(16, 68, screenW - 32, 66)];
-    card.tag = 77705;
-    card.backgroundColor = [UIColor colorWithRed:0.09 green:0.12 blue:0.19 alpha:0.96];
-    card.layer.cornerRadius = 16;
-    card.layer.borderWidth = 1.2;
-    card.layer.borderColor = [UIColor colorWithRed:0.0 green:0.80 blue:1.0 alpha:0.8].CGColor;
-    card.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-
-    UILabel *badgeLbl = [[UILabel alloc] initWithFrame:CGRectMake(14, 8, card.bounds.size.width - 28, 16)];
-    badgeLbl.text = worn ? @"👑 НАДЕТ В ПРОФИЛЕ (CHIMERA NFT)" : @"🎁 CHIMERA NFT: НАДЕТЬ ПОДАРОК В ПРОФИЛЬ";
-    badgeLbl.font = [UIFont boldSystemFontOfSize:10];
-    badgeLbl.textColor = [UIColor colorWithRed:0.0 green:0.85 blue:1.0 alpha:1.0];
-    badgeLbl.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-    [card addSubview:badgeLbl];
-
-    UILabel *titleLbl = [[UILabel alloc] initWithFrame:CGRectMake(14, 26, card.bounds.size.width - 100, 22)];
-    if (worn) {
-        titleLbl.text = [NSString stringWithFormat:@"%@ #%@ · %@", worn[@"title"], worn[@"number"], worn[@"pattern"] ?: @"Unique"];
-        titleLbl.textColor = [UIColor colorWithRed:1.0 green:0.84 blue:0.0 alpha:1.0];
-    } else {
-        titleLbl.text = @"Нажмите, чтобы выдать и надеть NFT";
-        titleLbl.textColor = [UIColor whiteColor];
-    }
-    titleLbl.font = [UIFont boldSystemFontOfSize:14];
-    titleLbl.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-    [card addSubview:titleLbl];
-
-    UIButton *actionBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    actionBtn.frame = CGRectMake(card.bounds.size.width - 94, 18, 82, 30);
-    actionBtn.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
-    actionBtn.backgroundColor = [UIColor colorWithRed:0.0 green:0.65 blue:0.95 alpha:0.9];
-    actionBtn.layer.cornerRadius = 12;
-    [actionBtn setTitle:worn ? @"Сменить ➔" : @"Выбрать ➔" forState:UIControlStateNormal];
-    actionBtn.titleLabel.font = [UIFont boldSystemFontOfSize:11];
-    [actionBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    [actionBtn addTarget:vc action:@selector(teledarkOpenMenuAction:) forControlEvents:UIControlEventTouchUpInside];
-    [card addSubview:actionBtn];
-
-    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:vc action:@selector(teledarkOpenMenuAction:)];
-    [card addGestureRecognizer:tap];
-
-    [vc.view addSubview:card];
 }
 
-#pragma mark - Внедрение баннера в экраны «Купить / Отправить подарок» (Gift Screens)
+- (void)chimeraCardTapped:(UITapGestureRecognizer *)tap {
+    UIView *card = tap.view;
+    NSInteger idx = card.tag - 88800;
+    NSArray *catalog = @[
+        @{ @"title": @"Durov's Cap", @"number": @1, @"model": @"cap", @"backdrop": @"Неон / Космос (#1F2338)", @"pattern": @"Золотые Звёзды", @"stars": @10000, @"gram": @25, @"emoji": @"🧢" },
+        @{ @"title": @"Cyber Skull", @"number": @777, @"model": @"skull", @"backdrop": @"Киберпанк Неон (#220935)", @"pattern": @"Черепа и Молнии", @"stars": @5000, @"gram": @15, @"emoji": @"💀" },
+        @{ @"title": @"King Pepe", @"number": @69, @"model": @"pepe", @"backdrop": @"Изумрудный Блеск (#152F24)", @"pattern": @"Короны (Crowns)", @"stars": @7500, @"gram": @20, @"emoji": @"🐸" },
+        @{ @"title": @"Astronaut Diamond", @"number": @100, @"model": @"gem", @"backdrop": @"Тёмный Сапфир (#1B2A4A)", @"pattern": @"Кристаллы", @"stars": @15000, @"gram": @40, @"emoji": @"💎" },
+        @{ @"title": @"Plush Pepe", @"number": @420, @"model": @"plush", @"backdrop": @"Мягкий Неон (#2E1F3B)", @"pattern": @"Сердечки", @"stars": @3000, @"gram": @10, @"emoji": @"🧸" },
+        @{ @"title": @"Golden Star Trophy", @"number": @7, @"model": @"trophy", @"backdrop": @"Имперское Золото (#382E12)", @"pattern": @"Звёзды Славы", @"stars": @20000, @"gram": @50, @"emoji": @"🏆" },
+        @{ @"title": @"B-Day Candle 2026", @"number": @888, @"model": @"candle", @"backdrop": @"Тёплый Закат (#3B1D1D)", @"pattern": @"Огни Праздника", @"stars": @2500, @"gram": @8, @"emoji": @"🕯️" },
+        @{ @"title": @"Ton Whale", @"number": @999, @"model": @"whale", @"backdrop": @"Глубокий Океан (#0B2338)", @"pattern": @"Волны TON", @"stars": @25000, @"gram": @60, @"emoji": @"🐋" },
+        @{ @"title": @"Создать свой NFT", @"number": @0, @"model": @"custom", @"backdrop": @"Кастом", @"pattern": @"Любой узор", @"stars": @0, @"gram": @0, @"emoji": @"✨" }
+    ];
 
-static void injectGiftScreenChimeraBanner(UIViewController *vc) {
+    if (idx < 0 || idx >= catalog.count) return;
+    NSDictionary *item = catalog[idx];
+    ChimeraStore *s = [ChimeraStore shared];
+
+    if ([item[@"number"] intValue] == 0) {
+        [self teledarkOpenMenuAction:nil];
+        return;
+    }
+
+    NSString *msg = [NSString stringWithFormat:@"Модель: %@ #%@\nФон: %@\nУзор: %@", item[@"title"], item[@"number"], item[@"backdrop"], item[@"pattern"]];
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"Купить %@", item[@"title"]] message:msg preferredStyle:UIAlertControllerStyleActionSheet];
+
+    [alert addAction:[UIAlertAction actionWithTitle:@"👑 Забрать и надеть в профиль (Бесплатно)" style:UIAlertActionStyleDefault handler:^(UIAlertAction *a) {
+        NSMutableDictionary *newGift = [@{
+            @"title": item[@"title"],
+            @"number": item[@"number"],
+            @"model": item[@"model"] ?: @"custom",
+            @"backdrop": item[@"backdrop"] ?: @"Неон",
+            @"pattern": item[@"pattern"] ?: @"Звёзды",
+            @"isWorn": @YES
+        } mutableCopy];
+        [s.gifts addObject:newGift];
+        s.activeWornGiftIndex = s.gifts.count - 1;
+        [s save];
+
+        UIView *grid = [self.view viewWithTag:77711];
+        if (grid) {
+            for (UIView *sub in grid.subviews) {
+                if ([sub isKindOfClass:[UIView class]] && sub.tag >= 88800) {
+                    NSInteger subIdx = sub.tag - 88800;
+                    UILabel *wornBadge = [sub viewWithTag:9990];
+                    if (wornBadge) {
+                        wornBadge.text = (subIdx == idx) ? @"👑 [НАДЕТ]" : @"";
+                    }
+                }
+            }
+        }
+
+        UIAlertController *done = [UIAlertController alertControllerWithTitle:@"🎉 Подарок надет!" message:[NSString stringWithFormat:@"%@ #%@ успешно надет в твоём профиле!", item[@"title"], item[@"number"]] preferredStyle:UIAlertControllerStyleAlert];
+        [done addAction:[UIAlertAction actionWithTitle:@"Отлично" style:UIAlertActionStyleDefault handler:nil]];
+        [self presentViewController:done animated:YES completion:nil];
+    }]];
+
+    [alert addAction:[UIAlertAction actionWithTitle:[NSString stringWithFormat:@"⭐️ Списать %lld Stars", [item[@"stars"] longLongValue]] style:UIAlertActionStyleDefault handler:^(UIAlertAction *a) {
+        if (s.starsBalance >= [item[@"stars"] longLongValue]) {
+            s.starsBalance -= [item[@"stars"] longLongValue];
+        }
+        NSMutableDictionary *newGift = [@{
+            @"title": item[@"title"],
+            @"number": item[@"number"],
+            @"model": item[@"model"] ?: @"custom",
+            @"backdrop": item[@"backdrop"] ?: @"Неон",
+            @"pattern": item[@"pattern"] ?: @"Звёзды",
+            @"isWorn": @YES
+        } mutableCopy];
+        [s.gifts addObject:newGift];
+        s.activeWornGiftIndex = s.gifts.count - 1;
+        [s save];
+    }]];
+
+    [alert addAction:[UIAlertAction actionWithTitle:@"✏️ Изменить номер перед покупкой" style:UIAlertActionStyleDefault handler:^(UIAlertAction *a) {
+        UIAlertController *numAlert = [UIAlertController alertControllerWithTitle:@"Номер NFT" message:@"Введите желаемый номер (например 777)" preferredStyle:UIAlertControllerStyleAlert];
+        [numAlert addTextFieldWithConfigurationHandler:^(UITextField *tf) {
+            tf.keyboardType = UIKeyboardTypeNumberPad;
+            tf.text = [NSString stringWithFormat:@"%@", item[@"number"]];
+        }];
+        [numAlert addAction:[UIAlertAction actionWithTitle:@"Сохранить и надеть" style:UIAlertActionStyleDefault handler:^(UIAlertAction *act) {
+            NSInteger n = [numAlert.textFields[0].text integerValue];
+            if (n <= 0) n = 1;
+            NSMutableDictionary *newGift = [@{
+                @"title": item[@"title"],
+                @"number": @(n),
+                @"model": item[@"model"] ?: @"custom",
+                @"backdrop": item[@"backdrop"] ?: @"Неон",
+                @"pattern": item[@"pattern"] ?: @"Звёзды",
+                @"isWorn": @YES
+            } mutableCopy];
+            [s.gifts addObject:newGift];
+            s.activeWornGiftIndex = s.gifts.count - 1;
+            [s save];
+        }]];
+        [numAlert addAction:[UIAlertAction actionWithTitle:@"Отмена" style:UIAlertActionStyleCancel handler:nil]];
+        [self presentViewController:numAlert animated:YES completion:nil];
+    }]];
+
+    [alert addAction:[UIAlertAction actionWithTitle:@"Отмена" style:UIAlertActionStyleCancel handler:nil]];
+    [self presentViewController:alert animated:YES completion:nil];
+}
+
+@end
+
+static void injectGiftScreenChimeraTabAndGrid(UIViewController *vc) {
     if (!vc.isViewLoaded || !vc.view) return;
-    if ([vc.view viewWithTag:77708]) return;
+    if ([vc.view viewWithTag:77710]) return; // уже внедрено
 
     CGFloat screenW = vc.view.bounds.size.width;
     if (screenW < 100) screenW = [UIScreen mainScreen].bounds.size.width;
+    CGFloat screenH = vc.view.bounds.size.height;
+    if (screenH < 200) screenH = [UIScreen mainScreen].bounds.size.height;
 
-    UIView *banner = [[UIView alloc] initWithFrame:CGRectMake(12, 10, screenW - 24, 48)];
-    banner.tag = 77708;
-    banner.backgroundColor = [UIColor colorWithRed:0.10 green:0.13 blue:0.22 alpha:0.98];
-    banner.layer.cornerRadius = 14;
-    banner.layer.borderWidth = 1.3;
-    banner.layer.borderColor = [UIColor colorWithRed:0.0 green:0.85 blue:1.0 alpha:0.9].CGColor;
-    banner.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    UISegmentedControl *seg = [[UISegmentedControl alloc] initWithItems:@[@"🎁 Подарки Telegram", @"👑 Chimera NFT"]];
+    seg.tag = 77710;
+    seg.selectedSegmentIndex = 0;
+    seg.frame = CGRectMake(16, 12, screenW - 32, 36);
+    seg.backgroundColor = [UIColor colorWithRed:0.10 green:0.13 blue:0.20 alpha:0.96];
+    seg.selectedSegmentTintColor = [UIColor colorWithRed:0.0 green:0.75 blue:1.0 alpha:1.0];
+    [seg setTitleTextAttributes:@{NSForegroundColorAttributeName: [UIColor whiteColor], NSFontAttributeName: [UIFont boldSystemFontOfSize:12]} forState:UIControlStateSelected];
+    [seg setTitleTextAttributes:@{NSForegroundColorAttributeName: [UIColor colorWithWhite:0.7 alpha:1.0], NSFontAttributeName: [UIFont systemFontOfSize:12]} forState:UIControlStateNormal];
+    [seg addTarget:vc action:@selector(chimeraGiftSegmentChanged:) forControlEvents:UIControlEventValueChanged];
+    seg.layer.cornerRadius = 12;
+    seg.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    [vc.view addSubview:seg];
+    [vc.view bringSubviewToFront:seg];
 
-    UILabel *lbl = [[UILabel alloc] initWithFrame:CGRectMake(12, 6, banner.bounds.size.width - 110, 36)];
-    lbl.text = @"👑 CHIMERA NFT\nКупить любые NFT в свой профиль";
-    lbl.numberOfLines = 2;
-    lbl.font = [UIFont boldSystemFontOfSize:11];
-    lbl.textColor = [UIColor whiteColor];
-    lbl.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-    [banner addSubview:lbl];
+    CGFloat topY = 56;
+    UIScrollView *grid = [[UIScrollView alloc] initWithFrame:CGRectMake(0, topY, screenW, screenH - topY)];
+    grid.tag = 77711;
+    grid.backgroundColor = [UIColor colorWithRed:0.07 green:0.09 blue:0.14 alpha:0.98];
+    grid.hidden = YES;
+    grid.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    grid.showsVerticalScrollIndicator = YES;
 
-    UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
-    btn.frame = CGRectMake(banner.bounds.size.width - 95, 9, 85, 30);
-    btn.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
-    btn.backgroundColor = [UIColor colorWithRed:0.0 green:0.75 blue:1.0 alpha:1.0];
-    btn.layer.cornerRadius = 12;
-    [btn setTitle:@"В маркет ➔" forState:UIControlStateNormal];
-    btn.titleLabel.font = [UIFont boldSystemFontOfSize:11];
-    [btn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    [btn addTarget:vc action:@selector(teledarkOpenMenuAction:) forControlEvents:UIControlEventTouchUpInside];
-    [banner addSubview:btn];
+    ChimeraStore *s = [ChimeraStore shared];
 
-    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:vc action:@selector(teledarkOpenMenuAction:)];
-    [banner addGestureRecognizer:tap];
+    UIView *balBar = [[UIView alloc] initWithFrame:CGRectMake(16, 10, screenW - 32, 40)];
+    balBar.backgroundColor = [UIColor colorWithRed:0.12 green:0.15 blue:0.24 alpha:0.95];
+    balBar.layer.cornerRadius = 12;
+    balBar.autoresizingMask = UIViewAutoresizingFlexibleWidth;
 
-    [vc.view addSubview:banner];
-    [vc.view bringSubviewToFront:banner];
+    UILabel *balLbl = [[UILabel alloc] initWithFrame:CGRectMake(12, 0, balBar.bounds.size.width - 24, 40)];
+    balLbl.text = [NSString stringWithFormat:@"⭐️ Баланс: %lld Stars   💎 %.1f GRAM", s.starsBalance, s.gramBalance];
+    balLbl.textColor = [UIColor colorWithRed:0.15 green:0.92 blue:0.55 alpha:1.0];
+    balLbl.font = [UIFont boldSystemFontOfSize:12];
+    balLbl.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    [balBar addSubview:balLbl];
+    [grid addSubview:balBar];
+
+    NSArray *catalog = @[
+        @{ @"title": @"Durov's Cap", @"number": @1, @"model": @"cap", @"backdrop": @"Неон / Космос (#1F2338)", @"pattern": @"Золотые Звёзды", @"stars": @10000, @"gram": @25, @"emoji": @"🧢" },
+        @{ @"title": @"Cyber Skull", @"number": @777, @"model": @"skull", @"backdrop": @"Киберпанк Неон (#220935)", @"pattern": @"Черепа и Молнии", @"stars": @5000, @"gram": @15, @"emoji": @"💀" },
+        @{ @"title": @"King Pepe", @"number": @69, @"model": @"pepe", @"backdrop": @"Изумрудный Блеск (#152F24)", @"pattern": @"Короны (Crowns)", @"stars": @7500, @"gram": @20, @"emoji": @"🐸" },
+        @{ @"title": @"Astronaut Diamond", @"number": @100, @"model": @"gem", @"backdrop": @"Тёмный Сапфир (#1B2A4A)", @"pattern": @"Кристаллы", @"stars": @15000, @"gram": @40, @"emoji": @"💎" },
+        @{ @"title": @"Plush Pepe", @"number": @420, @"model": @"plush", @"backdrop": @"Мягкий Неон (#2E1F3B)", @"pattern": @"Сердечки", @"stars": @3000, @"gram": @10, @"emoji": @"🧸" },
+        @{ @"title": @"Golden Star Trophy", @"number": @7, @"model": @"trophy", @"backdrop": @"Имперское Золото (#382E12)", @"pattern": @"Звёзды Славы", @"stars": @20000, @"gram": @50, @"emoji": @"🏆" },
+        @{ @"title": @"B-Day Candle 2026", @"number": @888, @"model": @"candle", @"backdrop": @"Тёплый Закат (#3B1D1D)", @"pattern": @"Огни Праздника", @"stars": @2500, @"gram": @8, @"emoji": @"🕯️" },
+        @{ @"title": @"Ton Whale", @"number": @999, @"model": @"whale", @"backdrop": @"Глубокий Океан (#0B2338)", @"pattern": @"Волны TON", @"stars": @25000, @"gram": @60, @"emoji": @"🐋" },
+        @{ @"title": @"Создать свой NFT", @"number": @0, @"model": @"custom", @"backdrop": @"Кастомный выбор", @"pattern": @"Любой узор", @"stars": @0, @"gram": @0, @"emoji": @"✨" }
+    ];
+
+    CGFloat cardW = (screenW - 40) / 2.0;
+    CGFloat cardH = 175.0;
+    CGFloat startY = 60.0;
+
+    NSDictionary *currentWorn = [s currentWornGift];
+
+    for (NSInteger i = 0; i < catalog.count; i++) {
+        NSDictionary *item = catalog[i];
+        NSInteger col = i % 2;
+        NSInteger row = i / 2;
+        CGFloat x = 14 + col * (cardW + 12);
+        CGFloat y = startY + row * (cardH + 12);
+
+        BOOL isWorn = currentWorn && [currentWorn[@"title"] isEqualToString:item[@"title"]];
+
+        UIView *card = [[UIView alloc] initWithFrame:CGRectMake(x, y, cardW, cardH)];
+        card.tag = 88800 + i;
+        card.backgroundColor = [UIColor colorWithRed:0.11 green:0.14 blue:0.22 alpha:0.96];
+        card.layer.cornerRadius = 14;
+        card.layer.borderWidth = isWorn ? 1.5 : 1.0;
+        card.layer.borderColor = isWorn ? [UIColor colorWithRed:1.0 green:0.82 blue:0.2 alpha:0.9].CGColor : [UIColor colorWithRed:0.18 green:0.22 blue:0.32 alpha:0.8].CGColor;
+
+        UILabel *emo = [[UILabel alloc] initWithFrame:CGRectMake(0, 14, cardW, 44)];
+        emo.text = item[@"emoji"];
+        emo.font = [UIFont systemFontOfSize:38];
+        emo.textAlignment = NSTextAlignmentCenter;
+        [card addSubview:emo];
+
+        UILabel *wornBadge = [[UILabel alloc] initWithFrame:CGRectMake(4, 6, cardW - 8, 14)];
+        wornBadge.tag = 9990;
+        wornBadge.text = isWorn ? @"👑 [НАДЕТ]" : @"";
+        wornBadge.textColor = [UIColor colorWithRed:1.0 green:0.84 blue:0.0 alpha:1.0];
+        wornBadge.font = [UIFont boldSystemFontOfSize:10];
+        wornBadge.textAlignment = NSTextAlignmentRight;
+        [card addSubview:wornBadge];
+
+        UILabel *tLbl = [[UILabel alloc] initWithFrame:CGRectMake(8, 62, cardW - 16, 18)];
+        tLbl.text = item[@"title"];
+        tLbl.textColor = [UIColor whiteColor];
+        tLbl.font = [UIFont boldSystemFontOfSize:13];
+        tLbl.textAlignment = NSTextAlignmentCenter;
+        [card addSubview:tLbl];
+
+        UILabel *subLbl = [[UILabel alloc] initWithFrame:CGRectMake(8, 80, cardW - 16, 16)];
+        subLbl.text = [item[@"number"] intValue] > 0 ? [NSString stringWithFormat:@"#%@ · %@", item[@"number"], item[@"model"]] : @"Кастомный";
+        subLbl.textColor = [UIColor colorWithRed:0.0 green:0.85 blue:1.0 alpha:1.0];
+        subLbl.font = [UIFont systemFontOfSize:10];
+        subLbl.textAlignment = NSTextAlignmentCenter;
+        [card addSubview:subLbl];
+
+        UIView *btnBox = [[UIView alloc] initWithFrame:CGRectMake(12, cardH - 42, cardW - 24, 28)];
+        btnBox.backgroundColor = [UIColor colorWithRed:0.0 green:0.65 blue:0.95 alpha:0.85];
+        btnBox.layer.cornerRadius = 10;
+        UILabel *priceLbl = [[UILabel alloc] initWithFrame:btnBox.bounds];
+        priceLbl.text = [item[@"stars"] longLongValue] > 0 ? [NSString stringWithFormat:@"⭐️ %@ Stars", item[@"stars"]] : @"Бесплатно";
+        priceLbl.textColor = [UIColor whiteColor];
+        priceLbl.font = [UIFont boldSystemFontOfSize:11];
+        priceLbl.textAlignment = NSTextAlignmentCenter;
+        [btnBox addSubview:priceLbl];
+        [card addSubview:btnBox];
+
+        UITapGestureRecognizer *cardTap = [[UITapGestureRecognizer alloc] initWithTarget:vc action:@selector(chimeraCardTapped:)];
+        [card addGestureRecognizer:cardTap];
+
+        [grid addSubview:card];
+    }
+
+    CGFloat totalRows = (catalog.count + 1) / 2;
+    grid.contentSize = CGSizeMake(screenW, startY + totalRows * (cardH + 12) + 40);
+
+    [vc.view addSubview:grid];
 }
 
 #pragma mark - Хуки интерфейса и UIViewController
@@ -1013,7 +1167,6 @@ static void (*orig_viewDidAppear)(UIViewController *, SEL, BOOL);
 static void hook_viewDidAppear(UIViewController *self, SEL _cmd, BOOL animated) {
     orig_viewDidAppear(self, _cmd, animated);
 
-    // 1. УБИРАЕМ ВСЕ ПЛАВАЮЩИЕ КНОПКИ С ЭКРАНА (по требованию пользователя)
     UIWindow *win = [UIApplication sharedApplication].keyWindow ?: [UIApplication sharedApplication].windows.firstObject;
     if (win) {
         UIView *oldPill = [win viewWithTag:CHIMERA_FLOATING_TAG];
@@ -1027,10 +1180,10 @@ static void hook_viewDidAppear(UIViewController *self, SEL _cmd, BOOL animated) 
     // 2. Интеграция в экраны «Купить / Отправить подарок»
     if ([className containsString:@"Gift"] || 
         [className containsString:@"AddGift"] || 
-        [className containsString:@"GiftStore"] ||
+        [className containsString:@"GiftStore"] || 
         [className containsString:@"GiftView"]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            injectGiftScreenChimeraBanner(self);
+            injectGiftScreenChimeraTabAndGrid(self);
             ensureTeledarkNavButton(self);
         });
     }
@@ -1045,8 +1198,8 @@ static void hook_viewDidAppear(UIViewController *self, SEL _cmd, BOOL animated) 
 
     // 4. Внедряем нативную кнопку в Navigation Bar
     if ([className containsString:@"Settings"] || 
-        [className containsString:@"ChatList"] ||
-        [className containsString:@"TabController"] ||
+        [className containsString:@"ChatList"] || 
+        [className containsString:@"TabController"] || 
         [className containsString:@"Root"]) {
         dispatch_async(dispatch_get_main_queue(), ^{
             ensureTeledarkNavButton(self);
