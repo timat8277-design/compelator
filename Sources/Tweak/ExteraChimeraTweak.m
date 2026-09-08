@@ -218,21 +218,13 @@
     self.navigationController.navigationBar.tintColor = [UIColor colorWithRed:0.0 green:0.80 blue:1.0 alpha:1.0];
 
     [self setupMarketCatalog];
-    [self setupSegmentedControl];
 
-    self.tableView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStyleInsetGrouped];
-    self.tableView.translatesAutoresizingMaskIntoConstraints = NO;
+    self.tableView = [[UITableView alloc] initWithFrame:self.view.bounds style:UITableViewStyleInsetGrouped];
+    self.tableView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     self.tableView.backgroundColor = [UIColor colorWithRed:0.07 green:0.09 blue:0.14 alpha:1.0];
     self.tableView.dataSource = self;
     self.tableView.delegate = self;
     [self.view addSubview:self.tableView];
-
-    [NSLayoutConstraint activateConstraints:@[
-        [self.tableView.topAnchor.constraintEqualToAnchor:self.segmentedControl.bottomAnchor constant:8],
-        [self.tableView.leadingAnchor.constraintEqualToAnchor:self.view.leadingAnchor],
-        [self.tableView.trailingAnchor.constraintEqualToAnchor:self.view.trailingAnchor],
-        [self.tableView.bottomAnchor.constraintEqualToAnchor:self.view.bottomAnchor]
-    ]];
 
     [self setupHeaderCard];
 }
@@ -251,58 +243,42 @@
     ];
 }
 
-- (void)setupSegmentedControl {
-    NSArray *items = @[@"🛍️ Маркет", @"🎁 Подарки", @"⭐️ Баланс", @"🏷️ Профиль"];
-    self.segmentedControl = [[UISegmentedControl alloc] initWithItems:items];
-    self.segmentedControl.selectedSegmentIndex = 0;
-    self.segmentedControl.translatesAutoresizingMaskIntoConstraints = NO;
-    self.segmentedControl.backgroundColor = [UIColor colorWithRed:0.12 green:0.15 blue:0.22 alpha:1.0];
-    self.segmentedControl.selectedSegmentTintColor = [UIColor colorWithRed:0.0 green:0.65 blue:0.95 alpha:1.0];
-    [self.segmentedControl setTitleTextAttributes:@{NSForegroundColorAttributeName: [UIColor whiteColor], NSFontAttributeName: [UIFont boldSystemFontOfSize:12]} forState:UIControlStateSelected];
-    [self.segmentedControl setTitleTextAttributes:@{NSForegroundColorAttributeName: [UIColor colorWithWhite:0.75 alpha:1.0], NSFontAttributeName: [UIFont systemFontOfSize:12]} forState:UIControlStateNormal];
-    [self.segmentedControl addTarget:self action:@selector(segmentChanged:) forControlEvents:UIControlEventValueChanged];
-    [self.view addSubview:self.segmentedControl];
-
-    [NSLayoutConstraint activateConstraints:@[
-        [self.segmentedControl.topAnchor.constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:8],
-        [self.segmentedControl.leadingAnchor.constraintEqualToAnchor:self.view.leadingAnchor constant:12],
-        [self.segmentedControl.trailingAnchor.constraintEqualToAnchor:self.view.trailingAnchor constant:-12],
-        [self.segmentedControl.heightAnchor.constraintEqualToConstant:34]
-    ]];
-}
-
 - (void)segmentChanged:(UISegmentedControl *)sc {
-    [self setupHeaderCard];
     [self.tableView reloadData];
 }
 
 - (void)setupHeaderCard {
     ChimeraStore *s = [ChimeraStore shared];
-    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, 160)];
+    CGFloat w = self.view.bounds.size.width > 100 ? self.view.bounds.size.width : [UIScreen mainScreen].bounds.size.width;
+    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, w, 206)];
 
-    UIView *card = [[UIView alloc] initWithFrame:CGRectMake(16, 8, self.view.bounds.size.width - 32, 144)];
+    UIView *card = [[UIView alloc] initWithFrame:CGRectMake(16, 8, w - 32, 140)];
     card.backgroundColor = [UIColor colorWithRed:0.11 green:0.14 blue:0.22 alpha:0.96];
     card.layer.cornerRadius = 16;
     card.layer.borderWidth = 1.3;
     card.layer.borderColor = [UIColor colorWithRed:0.0 green:0.75 blue:1.0 alpha:0.7].CGColor;
+    card.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     [header addSubview:card];
 
     UILabel *badge = [[UILabel alloc] initWithFrame:CGRectMake(14, 10, card.bounds.size.width - 28, 18)];
     badge.text = s.localPremiumEnabled ? @"👑 CHIMERA NFT  •  ⭐ LOCAL PREMIUM [АКТИВЕН]" : @"👑 CHIMERA NFT  •  ⭐ PREMIUM [ВЫКЛ]";
     badge.font = [UIFont boldSystemFontOfSize:11];
     badge.textColor = s.localPremiumEnabled ? [UIColor colorWithRed:0.2 green:0.85 blue:1.0 alpha:1.0] : [UIColor colorWithWhite:0.6 alpha:1.0];
+    badge.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     [card addSubview:badge];
 
     UILabel *userLabel = [[UILabel alloc] initWithFrame:CGRectMake(14, 28, card.bounds.size.width - 28, 28)];
     userLabel.text = [NSString stringWithFormat:@"@%@ %@", [s currentUsername], s.localPremiumEnabled ? @"⭐" : @""];
     userLabel.font = [UIFont boldSystemFontOfSize:22];
     userLabel.textColor = [UIColor whiteColor];
+    userLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     [card addSubview:userLabel];
 
     UILabel *numLabel = [[UILabel alloc] initWithFrame:CGRectMake(14, 58, card.bounds.size.width - 28, 18)];
     numLabel.text = [NSString stringWithFormat:@"📞 %@   •   🏆 Уровень %ld (%ld pts)", [s currentNumber], (long)s.ratingLevel, (long)s.ratingScore];
     numLabel.font = [UIFont systemFontOfSize:12];
     numLabel.textColor = [UIColor colorWithWhite:0.85 alpha:1.0];
+    numLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     [card addSubview:numLabel];
 
     NSDictionary *worn = [s currentWornGift];
@@ -315,13 +291,30 @@
         wornLabel.textColor = [UIColor colorWithWhite:0.6 alpha:1.0];
     }
     wornLabel.font = [UIFont boldSystemFontOfSize:11];
+    wornLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     [card addSubview:wornLabel];
 
-    UILabel *balLabel = [[UILabel alloc] initWithFrame:CGRectMake(14, 106, card.bounds.size.width - 28, 26)];
+    UILabel *balLabel = [[UILabel alloc] initWithFrame:CGRectMake(14, 104, card.bounds.size.width - 28, 26)];
     balLabel.text = [NSString stringWithFormat:@"⭐️ %lld Stars   💎 %.1f GRAM   🔷 %.1f TON", s.starsBalance, s.gramBalance, s.tonBalance];
     balLabel.font = [UIFont boldSystemFontOfSize:13];
     balLabel.textColor = [UIColor colorWithRed:0.15 green:0.92 blue:0.55 alpha:1.0];
+    balLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     [card addSubview:balLabel];
+
+    // Segmented control right under the card
+    if (!self.segmentedControl) {
+        NSArray *items = @[@"🛍️ Маркет", @"🎁 Подарки", @"⭐️ Баланс", @"🏷️ Профиль"];
+        self.segmentedControl = [[UISegmentedControl alloc] initWithItems:items];
+        self.segmentedControl.selectedSegmentIndex = 0;
+        self.segmentedControl.backgroundColor = [UIColor colorWithRed:0.12 green:0.15 blue:0.22 alpha:1.0];
+        self.segmentedControl.selectedSegmentTintColor = [UIColor colorWithRed:0.0 green:0.65 blue:0.95 alpha:1.0];
+        [self.segmentedControl setTitleTextAttributes:@{NSForegroundColorAttributeName: [UIColor whiteColor], NSFontAttributeName: [UIFont boldSystemFontOfSize:12]} forState:UIControlStateSelected];
+        [self.segmentedControl setTitleTextAttributes:@{NSForegroundColorAttributeName: [UIColor colorWithWhite:0.75 alpha:1.0], NSFontAttributeName: [UIFont systemFontOfSize:12]} forState:UIControlStateNormal];
+        [self.segmentedControl addTarget:self action:@selector(segmentChanged:) forControlEvents:UIControlEventValueChanged];
+    }
+    self.segmentedControl.frame = CGRectMake(16, 158, w - 32, 36);
+    self.segmentedControl.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    [header addSubview:self.segmentedControl];
 
     self.tableView.tableHeaderView = header;
 }
@@ -437,7 +430,7 @@
             cell.textLabel.text = @"Скрыть обычные подарки Telegram";
             cell.detailTextLabel.text = @"В профиле будут видны только ваши NFT подарки";
             UISwitch *sw = [[UISwitch alloc] init];
-            sw.isOn = s.hideRegularGifts;
+            [sw setOn:s.hideRegularGifts animated:NO];
             [sw addTarget:self action:@selector(hideRegularToggled:) forControlEvents:UIControlEventValueChanged];
             cell.accessoryView = sw;
         }
@@ -473,7 +466,7 @@
             cell.textLabel.text = @"Тратить баланс при покупках в маркете";
             cell.detailTextLabel.text = s.spendStarsOnBuy ? @"Покупки списывают баланс Stars" : @"Покупки бесплатны, баланс остаётся неизменным";
             UISwitch *sw = [[UISwitch alloc] init];
-            sw.isOn = s.spendStarsOnBuy;
+            [sw setOn:s.spendStarsOnBuy animated:NO];
             [sw addTarget:self action:@selector(spendStarsToggled:) forControlEvents:UIControlEventValueChanged];
             cell.accessoryView = sw;
         }
@@ -483,7 +476,7 @@
             cell.textLabel.text = @"Локальный Telegram Premium";
             cell.detailTextLabel.text = s.localPremiumEnabled ? @"Включён · значок ⭐ Premium и функции активны" : @"Выключен";
             UISwitch *sw = [[UISwitch alloc] init];
-            sw.isOn = s.localPremiumEnabled;
+            [sw setOn:s.localPremiumEnabled animated:NO];
             [sw addTarget:self action:@selector(premiumToggled:) forControlEvents:UIControlEventValueChanged];
             cell.accessoryView = sw;
         } else if (indexPath.section == 1) {
