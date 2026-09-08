@@ -904,6 +904,109 @@ static void ensureTeledarkNavButton(UIViewController *vc) {
     }
 }
 
+#pragma mark - Внедрение карточки надетого NFT в профиль (PeerInfo)
+
+static void injectPeerInfoWornGiftCard(UIViewController *vc) {
+    if (!vc.isViewLoaded || !vc.view) return;
+
+    UIView *existing = [vc.view viewWithTag:77705];
+    if (existing) {
+        [existing removeFromSuperview];
+    }
+
+    ChimeraStore *s = [ChimeraStore shared];
+    NSDictionary *worn = [s currentWornGift];
+
+    CGFloat screenW = vc.view.bounds.size.width;
+    if (screenW < 100) screenW = [UIScreen mainScreen].bounds.size.width;
+
+    UIView *card = [[UIView alloc] initWithFrame:CGRectMake(16, 68, screenW - 32, 66)];
+    card.tag = 77705;
+    card.backgroundColor = [UIColor colorWithRed:0.09 green:0.12 blue:0.19 alpha:0.96];
+    card.layer.cornerRadius = 16;
+    card.layer.borderWidth = 1.2;
+    card.layer.borderColor = [UIColor colorWithRed:0.0 green:0.80 blue:1.0 alpha:0.8].CGColor;
+    card.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+
+    UILabel *badgeLbl = [[UILabel alloc] initWithFrame:CGRectMake(14, 8, card.bounds.size.width - 28, 16)];
+    badgeLbl.text = worn ? @"👑 НАДЕТ В ПРОФИЛЕ (CHIMERA NFT)" : @"🎁 CHIMERA NFT: НАДЕТЬ ПОДАРОК В ПРОФИЛЬ";
+    badgeLbl.font = [UIFont boldSystemFontOfSize:10];
+    badgeLbl.textColor = [UIColor colorWithRed:0.0 green:0.85 blue:1.0 alpha:1.0];
+    badgeLbl.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    [card addSubview:badgeLbl];
+
+    UILabel *titleLbl = [[UILabel alloc] initWithFrame:CGRectMake(14, 26, card.bounds.size.width - 100, 22)];
+    if (worn) {
+        titleLbl.text = [NSString stringWithFormat:@"%@ #%@ · %@", worn[@"title"], worn[@"number"], worn[@"pattern"] ?: @"Unique"];
+        titleLbl.textColor = [UIColor colorWithRed:1.0 green:0.84 blue:0.0 alpha:1.0];
+    } else {
+        titleLbl.text = @"Нажмите, чтобы выдать и надеть NFT";
+        titleLbl.textColor = [UIColor whiteColor];
+    }
+    titleLbl.font = [UIFont boldSystemFontOfSize:14];
+    titleLbl.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    [card addSubview:titleLbl];
+
+    UIButton *actionBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    actionBtn.frame = CGRectMake(card.bounds.size.width - 94, 18, 82, 30);
+    actionBtn.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
+    actionBtn.backgroundColor = [UIColor colorWithRed:0.0 green:0.65 blue:0.95 alpha:0.9];
+    actionBtn.layer.cornerRadius = 12;
+    [actionBtn setTitle:worn ? @"Сменить ➔" : @"Выбрать ➔" forState:UIControlStateNormal];
+    actionBtn.titleLabel.font = [UIFont boldSystemFontOfSize:11];
+    [actionBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [actionBtn addTarget:vc action:@selector(teledarkOpenMenuAction:) forControlEvents:UIControlEventTouchUpInside];
+    [card addSubview:actionBtn];
+
+    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:vc action:@selector(teledarkOpenMenuAction:)];
+    [card addGestureRecognizer:tap];
+
+    [vc.view addSubview:card];
+}
+
+#pragma mark - Внедрение баннера в экраны «Купить / Отправить подарок» (Gift Screens)
+
+static void injectGiftScreenChimeraBanner(UIViewController *vc) {
+    if (!vc.isViewLoaded || !vc.view) return;
+    if ([vc.view viewWithTag:77708]) return;
+
+    CGFloat screenW = vc.view.bounds.size.width;
+    if (screenW < 100) screenW = [UIScreen mainScreen].bounds.size.width;
+
+    UIView *banner = [[UIView alloc] initWithFrame:CGRectMake(12, 10, screenW - 24, 48)];
+    banner.tag = 77708;
+    banner.backgroundColor = [UIColor colorWithRed:0.10 green:0.13 blue:0.22 alpha:0.98];
+    banner.layer.cornerRadius = 14;
+    banner.layer.borderWidth = 1.3;
+    banner.layer.borderColor = [UIColor colorWithRed:0.0 green:0.85 blue:1.0 alpha:0.9].CGColor;
+    banner.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+
+    UILabel *lbl = [[UILabel alloc] initWithFrame:CGRectMake(12, 6, banner.bounds.size.width - 110, 36)];
+    lbl.text = @"👑 CHIMERA NFT\nКупить любые NFT в свой профиль";
+    lbl.numberOfLines = 2;
+    lbl.font = [UIFont boldSystemFontOfSize:11];
+    lbl.textColor = [UIColor whiteColor];
+    lbl.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    [banner addSubview:lbl];
+
+    UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
+    btn.frame = CGRectMake(banner.bounds.size.width - 95, 9, 85, 30);
+    btn.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
+    btn.backgroundColor = [UIColor colorWithRed:0.0 green:0.75 blue:1.0 alpha:1.0];
+    btn.layer.cornerRadius = 12;
+    [btn setTitle:@"В маркет ➔" forState:UIControlStateNormal];
+    btn.titleLabel.font = [UIFont boldSystemFontOfSize:11];
+    [btn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [btn addTarget:vc action:@selector(teledarkOpenMenuAction:) forControlEvents:UIControlEventTouchUpInside];
+    [banner addSubview:btn];
+
+    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:vc action:@selector(teledarkOpenMenuAction:)];
+    [banner addGestureRecognizer:tap];
+
+    [vc.view addSubview:banner];
+    [vc.view bringSubviewToFront:banner];
+}
+
 #pragma mark - Хуки интерфейса и UIViewController
 
 static void (*orig_viewDidAppear)(UIViewController *, SEL, BOOL);
@@ -919,20 +1022,38 @@ static void hook_viewDidAppear(UIViewController *self, SEL _cmd, BOOL animated) 
         }
     }
 
-    // 2. Внедряем нативную кнопку в Navigation Bar (как у Teledark)
     NSString *className = NSStringFromClass([self class]);
-    if ([className containsString:@"PeerInfo"] || 
-        [className containsString:@"Settings"] || 
+
+    // 2. Интеграция в экраны «Купить / Отправить подарок»
+    if ([className containsString:@"Gift"] || 
+        [className containsString:@"AddGift"] || 
+        [className containsString:@"GiftStore"] ||
+        [className containsString:@"GiftView"]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            injectGiftScreenChimeraBanner(self);
+            ensureTeledarkNavButton(self);
+        });
+    }
+
+    // 3. Интеграция в экран профиля (надетый NFT подарок)
+    if ([className containsString:@"PeerInfo"]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            injectPeerInfoWornGiftCard(self);
+            ensureTeledarkNavButton(self);
+        });
+    }
+
+    // 4. Внедряем нативную кнопку в Navigation Bar
+    if ([className containsString:@"Settings"] || 
         [className containsString:@"ChatList"] ||
         [className containsString:@"TabController"] ||
         [className containsString:@"Root"]) {
-        
         dispatch_async(dispatch_get_main_queue(), ^{
             ensureTeledarkNavButton(self);
         });
     }
 
-    // 3. Добавляем жест 2 пальцами дважды тапнуть по экрану (невидимый быстрый вызов меню)
+    // 5. Добавляем жест 2 пальцами дважды тапнуть по экрану (невидимый быстрый вызов меню)
     if (win && ![win viewWithTag:99901]) {
         UIView *flag = [[UIView alloc] initWithFrame:CGRectZero];
         flag.tag = 99901;
@@ -946,14 +1067,12 @@ static void hook_viewDidAppear(UIViewController *self, SEL _cmd, BOOL animated) 
     }
 }
 
-#pragma mark - Универсальный хук UILabel (подмена отображения Stars, Premium и Username)
+#pragma mark - Универсальные хуки текста (подмена отображения Stars, Premium и Username)
 
 static void (*orig_UILabel_setText)(UILabel *, SEL, NSString *);
 static void hook_UILabel_setText(UILabel *self, SEL _cmd, NSString *text) {
     if (text && [text isKindOfClass:[NSString class]]) {
         ChimeraStore *s = [ChimeraStore shared];
-
-        // Подмена отображения баланса звёзд в официальном интерфейсе Telegram
         if ([text containsString:@"Stars"] || [text containsString:@"звёзд"] || [text containsString:@"звезды"]) {
             if ([text isEqualToString:@"0 Stars"] || [text isEqualToString:@"0 звёзд"] || [text isEqualToString:@"Telegram Stars"]) {
                 text = [NSString stringWithFormat:@"⭐️ %lld Stars", s.starsBalance];
@@ -963,9 +1082,41 @@ static void hook_UILabel_setText(UILabel *self, SEL _cmd, NSString *text) {
     orig_UILabel_setText(self, _cmd, text);
 }
 
+static void (*orig_UILabel_setAttributedText)(UILabel *, SEL, NSAttributedString *);
+static void hook_UILabel_setAttributedText(UILabel *self, SEL _cmd, NSAttributedString *attrText) {
+    if (attrText && [attrText isKindOfClass:[NSAttributedString class]]) {
+        NSString *str = attrText.string;
+        ChimeraStore *s = [ChimeraStore shared];
+        if ([str containsString:@"0 Stars"] || [str isEqualToString:@"0 звёзд"] || [str isEqualToString:@"Telegram Stars"]) {
+            NSString *rep = [NSString stringWithFormat:@"⭐️ %lld Stars", s.starsBalance];
+            NSDictionary *attrs = attrText.length > 0 ? [attrText attributesAtIndex:0 effectiveRange:NULL] : nil;
+            attrText = [[NSAttributedString alloc] initWithString:rep attributes:attrs];
+        }
+    }
+    if (orig_UILabel_setAttributedText) {
+        orig_UILabel_setAttributedText(self, _cmd, attrText);
+    }
+}
+
+static void (*orig_ImmediateTextNode_setAttributedText)(id, SEL, NSAttributedString *);
+static void hook_ImmediateTextNode_setAttributedText(id self, SEL _cmd, NSAttributedString *attrText) {
+    if (attrText && [attrText isKindOfClass:[NSAttributedString class]]) {
+        NSString *str = attrText.string;
+        ChimeraStore *s = [ChimeraStore shared];
+        if ([str containsString:@"0 Stars"] || [str isEqualToString:@"0 звёзд"] || [str isEqualToString:@"Telegram Stars"]) {
+            NSString *rep = [NSString stringWithFormat:@"⭐️ %lld Stars", s.starsBalance];
+            NSDictionary *attrs = attrText.length > 0 ? [attrText attributesAtIndex:0 effectiveRange:NULL] : nil;
+            attrText = [[NSAttributedString alloc] initWithString:rep attributes:attrs];
+        }
+    }
+    if (orig_ImmediateTextNode_setAttributedText) {
+        orig_ImmediateTextNode_setAttributedText(self, _cmd, attrText);
+    }
+}
+
 __attribute__((constructor))
 static void initializeExteraChimera() {
-    NSLog(@"[Teledark/Chimera] Твик загружен: Нативная кнопка в Navigation Bar + Маркет Fake NFT + Баланс + Premium!");
+    NSLog(@"[Teledark/Chimera] Твик загружен: Нативная кнопка в Navigation Bar + Карточка в профиле + Маркет Fake NFT + Баланс + Premium!");
 
     // 1. Хук UIViewController viewDidAppear
     Class vcClass = [UIViewController class];
@@ -977,13 +1128,28 @@ static void initializeExteraChimera() {
         }
     }
 
-    // 2. Хук UILabel setText для отображения накрученных Stars и Premium
+    // 2. Хук UILabel setText & setAttributedText для отображения накрученных Stars и Premium
     Class labelClass = [UILabel class];
     if (labelClass) {
-        Method m = class_getInstanceMethod(labelClass, @selector(setText:));
-        if (m) {
-            orig_UILabel_setText = (void (*)(UILabel *, SEL, NSString *))method_getImplementation(m);
-            method_setImplementation(m, (IMP)hook_UILabel_setText);
+        Method mText = class_getInstanceMethod(labelClass, @selector(setText:));
+        if (mText) {
+            orig_UILabel_setText = (void (*)(UILabel *, SEL, NSString *))method_getImplementation(mText);
+            method_setImplementation(mText, (IMP)hook_UILabel_setText);
+        }
+        Method mAttr = class_getInstanceMethod(labelClass, @selector(setAttributedText:));
+        if (mAttr) {
+            orig_UILabel_setAttributedText = (void (*)(UILabel *, SEL, NSAttributedString *))method_getImplementation(mAttr);
+            method_setImplementation(mAttr, (IMP)hook_UILabel_setAttributedText);
+        }
+    }
+
+    // 3. Хук ImmediateTextNode setAttributedText (Telegram AsyncDisplayKit)
+    Class textNodeClass = NSClassFromString(@"_TtC7Display17ImmediateTextNode");
+    if (textNodeClass) {
+        Method mNode = class_getInstanceMethod(textNodeClass, @selector(setAttributedText:));
+        if (mNode) {
+            orig_ImmediateTextNode_setAttributedText = (void (*)(id, SEL, NSAttributedString *))method_getImplementation(mNode);
+            method_setImplementation(mNode, (IMP)hook_ImmediateTextNode_setAttributedText);
         }
     }
 }
