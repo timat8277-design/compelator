@@ -1,0 +1,45 @@
+name: Build ExteraChimera Tweak for iOS (ESign)
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+
+    steps:
+      - name: Клонирование репозитория
+        uses: actions/checkout@v4
+
+      - name: Компиляция ExteraChimeraTweak.dylib из Sources/Tweak/ExteraChimeraTweak.m
+        run: |
+          echo "[+] Исходный файл твика:"
+          ls -la Sources/Tweak/ExteraChimeraTweak.m
+          
+          SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
+          echo "[+] SDK Path: $SDK_PATH"
+          
+          clang -dynamiclib -arch arm64 \
+            -isysroot "$SDK_PATH" \
+            -miphoneos-version-min=15.0 \
+            -fobjc-arc \
+            -Wno-everything \
+            -framework Foundation -framework UIKit -framework CoreGraphics -framework QuartzCore -lobjc \
+            Sources/Tweak/ExteraChimeraTweak.m \
+            -o ExteraChimeraTweak.dylib
+            
+          echo "[+] Подписание ad-hoc сертификатом:"
+          codesign -s - ExteraChimeraTweak.dylib
+          
+          echo "=== УСПЕХ: ExteraChimeraTweak.dylib скомпилирован! ==="
+          file ExteraChimeraTweak.dylib
+          ls -la ExteraChimeraTweak.dylib
+
+      - name: Выгрузка готового ExteraChimeraTweak.dylib для ESign
+        uses: actions/upload-artifact@v4
+        with:
+          name: ExteraChimeraTweak-dylib-for-ESign
+          path: ExteraChimeraTweak.dylib
+          retention-days: 14
