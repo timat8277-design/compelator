@@ -1,7 +1,7 @@
 //
 //  ExteraChimeraTweak.m
 //  Твик для инъекции в Telegram 12.9.2:
-//  1. Кнопка «Chimera NFT» в Настройках Telegram, открывающая полноценный центр управления.
+//  1. Плавающая кнопка «👑 Chimera» на экране и кнопка в Настройках Telegram.
 //  2. Локальная накрутка баланса Telegram Stars (Звёзды) и токенов GRAM / TON.
 //  3. Бесконечная локальная выдача любых NFT подарков с кастомными фонами, узорами и номерами.
 //  4. Бесконечная локальная генерация коллекционных @Username (Fragment NFT) и анонимных +888 номеров.
@@ -14,6 +14,8 @@
 #import <objc/runtime.h>
 
 #define CHIMERA_STORAGE_KEY @"chimeranft_master_storage_v3"
+#define CHIMERA_BTN_TAG 77702
+#define CHIMERA_FLOATING_TAG 77703
 
 #pragma mark - Хранилище ChimeraStore
 
@@ -171,7 +173,6 @@
     self.title = @"Chimera NFT";
     self.view.backgroundColor = [UIColor colorWithRed:0.07 green:0.08 blue:0.12 alpha:1.0];
 
-    // Кнопка закрытия
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Готово" style:UIBarButtonItemStyleDone target:self action:@selector(closeTapped)];
     self.navigationController.navigationBar.tintColor = [UIColor colorWithRed:0.2 green:0.8 blue:1.0 alpha:1.0];
 
@@ -237,7 +238,7 @@
 #pragma mark - UITableView DataSource & Delegate
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return 4; // 0: Баланс, 1: NFT Подарки, 2: Collectible Юзернеймы, 3: Анонимные Номера
+    return 4;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
@@ -253,10 +254,10 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     ChimeraStore *s = [ChimeraStore shared];
     switch (section) {
-        case 0: return 3; // Stars, GRAM, TON
-        case 1: return 1 + s.gifts.count; // Кнопка выдачи + список подарков
-        case 2: return 1 + s.usernames.count; // Кнопка добавления + список юзов
-        case 3: return 1 + s.numbers.count; // Кнопка добавления + список номеров
+        case 0: return 3;
+        case 1: return 1 + s.gifts.count;
+        case 2: return 1 + s.usernames.count;
+        case 3: return 1 + s.numbers.count;
         default: return 0;
     }
 }
@@ -272,7 +273,6 @@
     cell.detailTextLabel.textColor = [UIColor colorWithWhite:0.7 alpha:1.0];
     cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
 
-    // Секция 0: Баланс
     if (indexPath.section == 0) {
         if (indexPath.row == 0) {
             cell.textLabel.text = @"⭐️ Telegram Stars (Звёзды)";
@@ -284,9 +284,7 @@
             cell.textLabel.text = @"🔷 Баланс TON";
             cell.detailTextLabel.text = [NSString stringWithFormat:@"%.1f TON (Нажмите для накрутки)", s.tonBalance];
         }
-    }
-    // Секция 1: NFT Подарки
-    else if (indexPath.section == 1) {
+    } else if (indexPath.section == 1) {
         if (indexPath.row == 0) {
             cell.textLabel.text = @"➕ Выдать себе новый NFT подарок";
             cell.detailTextLabel.text = @"Выбор любого узора, фона, номера и модели";
@@ -301,9 +299,7 @@
                 cell.textLabel.textColor = [UIColor colorWithRed:1.0 green:0.85 blue:0.3 alpha:1.0];
             }
         }
-    }
-    // Секция 2: Usernames
-    else if (indexPath.section == 2) {
+    } else if (indexPath.section == 2) {
         if (indexPath.row == 0) {
             cell.textLabel.text = @"➕ Добавить новый NFT Username";
             cell.detailTextLabel.text = @"Создать Fragment username без ограничений";
@@ -316,9 +312,7 @@
             cell.detailTextLabel.text = isActive ? @"Текущий отображаемый юзернейм" : @"Нажмите, чтобы активировать";
             if (isActive) cell.textLabel.textColor = [UIColor colorWithRed:0.2 green:0.9 blue:0.5 alpha:1.0];
         }
-    }
-    // Секция 3: Номера
-    else if (indexPath.section == 3) {
+    } else if (indexPath.section == 3) {
         if (indexPath.row == 0) {
             cell.textLabel.text = @"➕ Добавить новый +888 номер";
             cell.detailTextLabel.text = @"Создать анонимный номер без ограничений";
@@ -340,10 +334,8 @@
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
     ChimeraStore *s = [ChimeraStore shared];
 
-    // Секция 0: Накрутка баланса
     if (indexPath.section == 0) {
         if (indexPath.row == 0) {
-            // Stars
             UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"⭐️ Накрутка Telegram Stars" message:@"Введите любое количество звёзд:" preferredStyle:UIAlertControllerStyleAlert];
             [alert addTextFieldWithConfigurationHandler:^(UITextField *tf) {
                 tf.keyboardType = UIKeyboardTypeNumberPad;
@@ -370,7 +362,6 @@
             [alert addAction:[UIAlertAction actionWithTitle:@"Отмена" style:UIAlertActionStyleCancel handler:nil]];
             [self presentViewController:alert animated:YES completion:nil];
         } else if (indexPath.row == 1) {
-            // GRAM
             UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"💎 Баланс GRAM" message:@"Введите баланс GRAM:" preferredStyle:UIAlertControllerStyleAlert];
             [alert addTextFieldWithConfigurationHandler:^(UITextField *tf) {
                 tf.keyboardType = UIKeyboardTypeDecimalPad;
@@ -385,7 +376,6 @@
             [alert addAction:[UIAlertAction actionWithTitle:@"Отмена" style:UIAlertActionStyleCancel handler:nil]];
             [self presentViewController:alert animated:YES completion:nil];
         } else {
-            // TON
             UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"🔷 Баланс TON" message:@"Введите баланс TON:" preferredStyle:UIAlertControllerStyleAlert];
             [alert addTextFieldWithConfigurationHandler:^(UITextField *tf) {
                 tf.keyboardType = UIKeyboardTypeDecimalPad;
@@ -400,11 +390,8 @@
             [alert addAction:[UIAlertAction actionWithTitle:@"Отмена" style:UIAlertActionStyleCancel handler:nil]];
             [self presentViewController:alert animated:YES completion:nil];
         }
-    }
-    // Секция 1: NFT Подарки
-    else if (indexPath.section == 1) {
+    } else if (indexPath.section == 1) {
         if (indexPath.row == 0) {
-            // Выдать новый NFT подарок
             UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"🎁 Выдача NFT Подарка" message:@"Настройте модель, номер, узор и фон:" preferredStyle:UIAlertControllerStyleAlert];
             [alert addTextFieldWithConfigurationHandler:^(UITextField *tf) { tf.placeholder = @"Модель (Durov's Cap, King Pepe, Diamond)"; tf.text = @"Cyber Skull"; }];
             [alert addTextFieldWithConfigurationHandler:^(UITextField *tf) { tf.placeholder = @"Номер (#1, #777...)"; tf.text = @"777"; tf.keyboardType = UIKeyboardTypeNumberPad; }];
@@ -435,18 +422,14 @@
             [alert addAction:[UIAlertAction actionWithTitle:@"Отмена" style:UIAlertActionStyleCancel handler:nil]];
             [self presentViewController:alert animated:YES completion:nil];
         } else {
-            // Надеть выбранный подарок
             NSInteger idx = indexPath.row - 1;
             s.activeWornGiftIndex = idx;
             [s save];
             [self setupHeaderCard];
             [self.tableView reloadData];
         }
-    }
-    // Секция 2: Usernames
-    else if (indexPath.section == 2) {
+    } else if (indexPath.section == 2) {
         if (indexPath.row == 0) {
-            // Добавить юзернейм
             UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"🏷️ Новый NFT Username" message:@"Введите username (без @):" preferredStyle:UIAlertControllerStyleAlert];
             [alert addTextFieldWithConfigurationHandler:^(UITextField *tf) { tf.placeholder = @"username"; tf.text = @"vip"; }];
             [alert addAction:[UIAlertAction actionWithTitle:@"Создать и Активировать" style:UIAlertActionStyleDefault handler:^(UIAlertAction *a) {
@@ -468,11 +451,8 @@
             [self setupHeaderCard];
             [self.tableView reloadData];
         }
-    }
-    // Секция 3: Номера
-    else if (indexPath.section == 3) {
+    } else if (indexPath.section == 3) {
         if (indexPath.row == 0) {
-            // Добавить номер
             UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"📞 Новый +888 Номер" message:@"Введите анонимный номер:" preferredStyle:UIAlertControllerStyleAlert];
             [alert addTextFieldWithConfigurationHandler:^(UITextField *tf) { tf.placeholder = @"+888 XXXX XXXX"; tf.text = @"+888 7777 9999"; }];
             [alert addAction:[UIAlertAction actionWithTitle:@"Создать и Активировать" style:UIAlertActionStyleDefault handler:^(UIAlertAction *a) {
@@ -499,7 +479,222 @@
 
 @end
 
-#pragma mark - Хуки Telegram
+#pragma mark - Плавающая кнопка и действия
+
+static UIViewController *getTopMostViewController(void) {
+    UIWindow *keyWin = nil;
+    if (@available(iOS 13.0, *)) {
+        for (UIWindowScene *scene in [UIApplication sharedApplication].connectedScenes) {
+            if ([scene isKindOfClass:[UIWindowScene class]]) {
+                for (UIWindow *w in scene.windows) {
+                    if (w.isKeyWindow) { keyWin = w; break; }
+                    if (!keyWin && !w.hidden && w.bounds.size.width > 100) keyWin = w;
+                }
+            }
+            if (keyWin && keyWin.isKeyWindow) break;
+        }
+    }
+    if (!keyWin) {
+        for (UIWindow *w in [UIApplication sharedApplication].windows) {
+            if (w.isKeyWindow) { keyWin = w; break; }
+            if (!keyWin && !w.hidden && w.bounds.size.width > 100) keyWin = w;
+        }
+    }
+    if (!keyWin) {
+        keyWin = [UIApplication sharedApplication].keyWindow;
+    }
+    UIViewController *top = keyWin.rootViewController;
+    while (top.presentedViewController) {
+        top = top.presentedViewController;
+    }
+    if ([top isKindOfClass:[UINavigationController class]]) {
+        top = [(UINavigationController *)top visibleViewController] ?: top;
+    } else if ([top isKindOfClass:[UITabBarController class]]) {
+        top = [(UITabBarController *)top selectedViewController] ?: top;
+    }
+    return top;
+}
+
+static UIWindow *getAppMainWindow(void) {
+    UIWindow *window = nil;
+    if (@available(iOS 13.0, *)) {
+        for (UIWindowScene *scene in [UIApplication sharedApplication].connectedScenes) {
+            if ([scene isKindOfClass:[UIWindowScene class]]) {
+                for (UIWindow *w in scene.windows) {
+                    if (w.isKeyWindow) return w;
+                    if (!window && !w.hidden && w.bounds.size.width > 100) window = w;
+                }
+            }
+        }
+    }
+    for (UIWindow *w in [UIApplication sharedApplication].windows) {
+        if (w.isKeyWindow) return w;
+        if (!window && !w.hidden && w.bounds.size.width > 100) window = w;
+    }
+    if (!window) {
+        window = [UIApplication sharedApplication].keyWindow;
+    }
+    return window;
+}
+
+@interface UIButton (ChimeraFloatingActions)
+- (void)chimeraOpenAction:(id)sender;
+- (void)chimeraFloatingPanned:(UIPanGestureRecognizer *)gesture;
+@end
+
+@implementation UIButton (ChimeraFloatingActions)
+
+- (void)chimeraOpenAction:(id)sender {
+    UIViewController *topVC = getTopMostViewController();
+    if (!topVC) return;
+    if ([topVC isKindOfClass:[ChimeraNFTSettingsViewController class]] || 
+        ([topVC isKindOfClass:[UINavigationController class]] && [((UINavigationController *)topVC).topViewController isKindOfClass:[ChimeraNFTSettingsViewController class]])) {
+        return;
+    }
+    ChimeraNFTSettingsViewController *chimeraVC = [[ChimeraNFTSettingsViewController alloc] init];
+    UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:chimeraVC];
+    nav.modalPresentationStyle = UIModalPresentationPageSheet;
+    [topVC presentViewController:nav animated:YES completion:nil];
+}
+
+- (void)chimeraFloatingPanned:(UIPanGestureRecognizer *)gesture {
+    UIView *btn = gesture.view;
+    CGPoint translation = [gesture translationInView:btn.superview];
+    CGFloat newX = btn.center.x + translation.x;
+    CGFloat newY = btn.center.y + translation.y;
+    CGRect b = btn.superview ? btn.superview.bounds : [UIScreen mainScreen].bounds;
+    CGFloat hw = btn.bounds.size.width / 2.0;
+    CGFloat hh = btn.bounds.size.height / 2.0;
+    newX = MAX(hw + 6, MIN(b.size.width - hw - 6, newX));
+    newY = MAX(hh + 44, MIN(b.size.height - hh - 24, newY));
+    btn.center = CGPointMake(newX, newY);
+    [gesture setTranslation:CGPointZero inView:btn.superview];
+}
+
+@end
+
+#pragma mark - UI Внедрение кнопки
+
+static void ensureFloatingChimeraButton() {
+    UIWindow *window = getAppMainWindow();
+    if (!window) return;
+
+    if ([window viewWithTag:CHIMERA_FLOATING_TAG]) {
+        UIView *existing = [window viewWithTag:CHIMERA_FLOATING_TAG];
+        [window bringSubviewToFront:existing];
+        return;
+    }
+
+    CGFloat screenW = window.bounds.size.width;
+    UIButton *pill = [UIButton buttonWithType:UIButtonTypeCustom];
+    pill.tag = CHIMERA_FLOATING_TAG;
+    pill.frame = CGRectMake(screenW - 110, 115, 100, 36);
+    pill.backgroundColor = [UIColor colorWithRed:0.06 green:0.10 blue:0.18 alpha:0.96];
+    pill.layer.cornerRadius = 18;
+    pill.layer.borderWidth = 1.6;
+    pill.layer.borderColor = [UIColor colorWithRed:0.0 green:0.82 blue:1.0 alpha:0.9].CGColor;
+    pill.layer.shadowColor = [UIColor colorWithRed:0.0 green:0.82 blue:1.0 alpha:0.5].CGColor;
+    pill.layer.shadowOffset = CGSizeMake(0, 3);
+    pill.layer.shadowRadius = 8;
+    pill.layer.shadowOpacity = 0.95;
+
+    UILabel *title = [[UILabel alloc] initWithFrame:pill.bounds];
+    title.text = @"👑 Chimera";
+    title.font = [UIFont boldSystemFontOfSize:13];
+    title.textColor = [UIColor whiteColor];
+    title.textAlignment = NSTextAlignmentCenter;
+    title.userInteractionEnabled = NO;
+    [pill addSubview:title];
+
+    [pill addTarget:pill action:@selector(chimeraOpenAction:) forControlEvents:UIControlEventTouchUpInside];
+    
+    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:pill action:@selector(chimeraOpenAction:)];
+    tap.cancelsTouchesInView = NO;
+    [pill addGestureRecognizer:tap];
+
+    UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:pill action:@selector(chimeraFloatingPanned:)];
+    pan.cancelsTouchesInView = NO;
+    [pill addGestureRecognizer:pan];
+
+    // Жест 2 пальцами дважды тапнуть по окну (запасной вход в меню из любого места)
+    UITapGestureRecognizer *twoFingerTap = [[UITapGestureRecognizer alloc] initWithTarget:pill action:@selector(chimeraOpenAction:)];
+    twoFingerTap.numberOfTouchesRequired = 2;
+    twoFingerTap.numberOfTapsRequired = 2;
+    twoFingerTap.cancelsTouchesInView = NO;
+    [window addGestureRecognizer:twoFingerTap];
+
+    [window addSubview:pill];
+    [window bringSubviewToFront:pill];
+}
+
+static void ensureSettingsChimeraButton(UIViewController *self) {
+    UIView *existingBtn = [self.view viewWithTag:CHIMERA_BTN_TAG];
+    if (existingBtn) {
+        [existingBtn removeFromSuperview];
+    }
+
+    ChimeraStore *s = [ChimeraStore shared];
+    UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
+    btn.tag = CHIMERA_BTN_TAG;
+    btn.frame = CGRectMake(16, 72, self.view.bounds.size.width - 32, 58);
+    btn.backgroundColor = [UIColor colorWithRed:0.10 green:0.13 blue:0.19 alpha:0.96];
+    btn.layer.cornerRadius = 14;
+    btn.layer.borderWidth = 1.3;
+    btn.layer.borderColor = [UIColor colorWithRed:0.0 green:0.75 blue:1.0 alpha:0.7].CGColor;
+    btn.layer.shadowColor = [UIColor colorWithRed:0.0 green:0.75 blue:1.0 alpha:0.3].CGColor;
+    btn.layer.shadowOffset = CGSizeMake(0, 4);
+    btn.layer.shadowRadius = 8;
+    btn.layer.shadowOpacity = 0.8;
+
+    UILabel *iconLabel = [[UILabel alloc] initWithFrame:CGRectMake(12, 14, 30, 30)];
+    iconLabel.text = @"👑";
+    iconLabel.font = [UIFont systemFontOfSize:22];
+    [btn addSubview:iconLabel];
+
+    UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(48, 10, btn.bounds.size.width - 80, 20)];
+    titleLabel.text = @"Chimera NFT";
+    titleLabel.font = [UIFont boldSystemFontOfSize:16];
+    titleLabel.textColor = [UIColor whiteColor];
+    [btn addSubview:titleLabel];
+
+    UILabel *subLabel = [[UILabel alloc] initWithFrame:CGRectMake(48, 30, btn.bounds.size.width - 80, 18)];
+    subLabel.text = [NSString stringWithFormat:@"⭐️ %lld Stars  •  💎 %.1f GRAM  •  @%@", s.starsBalance, s.gramBalance, [s currentUsername]];
+    subLabel.font = [UIFont systemFontOfSize:12];
+    subLabel.textColor = [UIColor colorWithRed:0.2 green:0.8 blue:1.0 alpha:1.0];
+    [btn addSubview:subLabel];
+
+    UILabel *arrow = [[UILabel alloc] initWithFrame:CGRectMake(btn.bounds.size.width - 26, 19, 20, 20)];
+    arrow.text = @"›";
+    arrow.font = [UIFont systemFontOfSize:24 weight:UIFontWeightRegular];
+    arrow.textColor = [UIColor colorWithWhite:0.6 alpha:1.0];
+    [btn addSubview:arrow];
+
+    [btn addTarget:btn action:@selector(chimeraOpenAction:) forControlEvents:UIControlEventTouchUpInside];
+
+    [self.view addSubview:btn];
+    [self.view bringSubviewToFront:btn];
+}
+
+#pragma mark - Хук UIViewController
+
+static void (*orig_viewDidAppear)(UIViewController *, SEL, BOOL);
+static void hook_viewDidAppear(UIViewController *self, SEL _cmd, BOOL animated) {
+    orig_viewDidAppear(self, _cmd, animated);
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        ensureFloatingChimeraButton();
+    });
+
+    NSString *className = NSStringFromClass([self class]);
+    if ([className containsString:@"PeerInfo"] || 
+        [className containsString:@"Settings"] || 
+        [className containsString:@"Profile"]) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            ensureSettingsChimeraButton(self);
+        });
+    }
+}
 
 // 1. Хук isPremium
 static BOOL (*orig_isPremium)(id, SEL);
@@ -513,91 +708,14 @@ static long long hook_starsBalance(id self, SEL _cmd) {
     return [ChimeraStore shared].starsBalance;
 }
 
-// Внедрение кнопки «Chimera NFT» в экран Настроек (SettingsController / PeerInfoScreen)
-static void (*orig_viewWillAppear)(UIViewController *, SEL, BOOL);
-static void hook_viewWillAppear(UIViewController *self, SEL _cmd, BOOL animated) {
-    orig_viewWillAppear(self, _cmd, animated);
-
-    NSString *className = NSStringFromClass([self class]);
-    if ([className containsString:@"SettingsController"] || [className containsString:@"PeerInfoScreen"]) {
-        UIView *existingBtn = [self.view viewWithTag:77702];
-        if (existingBtn) {
-            [existingBtn removeFromSuperview];
-        }
-
-        ChimeraStore *s = [ChimeraStore shared];
-
-        // Создаём красивую полноценную кнопку «Chimera NFT» в стиле Telegram iOS
-        UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
-        btn.tag = 77702;
-        btn.frame = CGRectMake(16, 72, self.view.bounds.size.width - 32, 58);
-        btn.backgroundColor = [UIColor colorWithRed:0.10 green:0.13 blue:0.19 alpha:0.96];
-        btn.layer.cornerRadius = 14;
-        btn.layer.borderWidth = 1.3;
-        btn.layer.borderColor = [UIColor colorWithRed:0.0 green:0.75 blue:1.0 alpha:0.7].CGColor;
-        btn.layer.shadowColor = [UIColor colorWithRed:0.0 green:0.75 blue:1.0 alpha:0.3].CGColor;
-        btn.layer.shadowOffset = CGSizeMake(0, 4);
-        btn.layer.shadowRadius = 8;
-        btn.layer.shadowOpacity = 0.8;
-
-        // Иконка 👑
-        UILabel *iconLabel = [[UILabel alloc] initWithFrame:CGRectMake(12, 14, 30, 30)];
-        iconLabel.text = @"👑";
-        iconLabel.font = [UIFont systemFontOfSize:22];
-        [btn addSubview:iconLabel];
-
-        // Заголовок
-        UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(48, 10, btn.bounds.size.width - 80, 20)];
-        titleLabel.text = @"Chimera NFT";
-        titleLabel.font = [UIFont boldSystemFontOfSize:16];
-        titleLabel.textColor = [UIColor whiteColor];
-        [btn addSubview:titleLabel];
-
-        // Подзаголовок: баланс и текущий подарок
-        UILabel *subLabel = [[UILabel alloc] initWithFrame:CGRectMake(48, 30, btn.bounds.size.width - 80, 18)];
-        subLabel.text = [NSString stringWithFormat:@"⭐️ %lld Stars  •  💎 %.1f GRAM  •  @%@", s.starsBalance, s.gramBalance, [s currentUsername]];
-        subLabel.font = [UIFont systemFontOfSize:12];
-        subLabel.textColor = [UIColor colorWithRed:0.2 green:0.8 blue:1.0 alpha:1.0];
-        [btn addSubview:subLabel];
-
-        // Стрелка перехода
-        UILabel *arrow = [[UILabel alloc] initWithFrame:CGRectMake(btn.bounds.size.width - 26, 19, 20, 20)];
-        arrow.text = @"›";
-        arrow.font = [UIFont systemFontOfSize:24 weight:UIFontWeightRegular];
-        arrow.textColor = [UIColor colorWithWhite:0.6 alpha:1.0];
-        [btn addSubview:arrow];
-
-        // Действие при клике: открытие экрана ChimeraNFTSettingsViewController
-        objc_setAssociatedObject(btn, "chimera_parent_vc", self, OBJC_ASSOCIATION_ASSIGN);
-        [btn addTarget:btn action:@selector(openChimeraSettingsAction:) forControlEvents:UIControlEventTouchUpInside];
-
-        [self.view addSubview:btn];
-    }
-}
-
-// Категория UIButton для открытия контроллера
-@interface UIButton (ChimeraSettingsOpener)
-- (void)openChimeraSettingsAction:(id)sender;
-@end
-
-@implementation UIButton (ChimeraSettingsOpener)
-- (void)openChimeraSettingsAction:(id)sender {
-    UIViewController *parent = objc_getAssociatedObject(self, "chimera_parent_vc");
-    if (parent) {
-        ChimeraNFTSettingsViewController *chimeraVC = [[ChimeraNFTSettingsViewController alloc] init];
-        UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:chimeraVC];
-        nav.modalPresentationStyle = UIModalPresentationPageSheet;
-        [parent presentViewController:nav animated:YES completion:nil];
-    }
-}
-@end
-
 __attribute__((constructor))
 static void initializeExteraChimera() {
-    NSLog(@"[exteraGram] Твик ExteraChimeraTweak v3 (Кнопка Chimera NFT в Настройках + Stars + GRAM + Подарки + Номера) загружен!");
+    NSLog(@"[exteraGram] Твик ExteraChimeraTweak v4 (Плавающая кнопка + Настройки + Stars + GRAM + NFT) загружен!");
 
     // 1. Хук isPremium
-    Class userClass = objc_getClass("TelegramCore.TelegramUser") ?: objc_getClass("TelegramUser");
+    Class userClass = objc_getClass("_TtC12TelegramCore12TelegramUser") 
+                   ?: objc_getClass("TelegramCore.TelegramUser") 
+                   ?: objc_getClass("TelegramUser");
     if (userClass) {
         Method m = class_getInstanceMethod(userClass, sel_registerName("isPremium"));
         if (m) {
@@ -608,7 +726,9 @@ static void initializeExteraChimera() {
     }
 
     // 2. Хук starsBalance
-    Class starsClass = objc_getClass("TelegramCore.StarsContext") ?: objc_getClass("StarsContext");
+    Class starsClass = objc_getClass("_TtC12TelegramCore12StarsContext") 
+                    ?: objc_getClass("TelegramCore.StarsContext") 
+                    ?: objc_getClass("StarsContext");
     if (starsClass) {
         Method m = class_getInstanceMethod(starsClass, sel_registerName("starsBalance"));
         if (m) {
@@ -618,14 +738,14 @@ static void initializeExteraChimera() {
         }
     }
 
-    // 3. Хук SettingsController
-    Class settingsClass = objc_getClass("TelegramUI.SettingsController") ?: objc_getClass("SettingsController");
-    if (settingsClass) {
-        Method m = class_getInstanceMethod(settingsClass, @selector(viewWillAppear:));
+    // 3. Хук UIViewController: ГАРАНТИРОВАНО работает на ВСЕХ экранах Telegram
+    Class vcClass = [UIViewController class];
+    if (vcClass) {
+        Method m = class_getInstanceMethod(vcClass, @selector(viewDidAppear:));
         if (m) {
-            orig_viewWillAppear = (void (*)(UIViewController *, SEL, BOOL))method_getImplementation(m);
-            method_setImplementation(m, (IMP)hook_viewWillAppear);
-            NSLog(@"[exteraGram] Хук SettingsController активирован (кнопка Chimera NFT внедрена)!");
+            orig_viewDidAppear = (void (*)(UIViewController *, SEL, BOOL))method_getImplementation(m);
+            method_setImplementation(m, (IMP)hook_viewDidAppear);
+            NSLog(@"[exteraGram] Хук UIViewController viewDidAppear успешно установлен!");
         }
     }
 }
